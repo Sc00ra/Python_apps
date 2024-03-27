@@ -1,5 +1,5 @@
 from os import getcwd
-import czas
+import CW_1.czas as czas
 import importlib
 import time
 
