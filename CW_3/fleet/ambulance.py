@@ -1,18 +1,60 @@
 # V1 - slajd 8
+from datetime import datetime
+import math
 class Ambulance:
-    __slots__ = ['id', 'vehicle_type', 'status', 'location', 'medical_equipment']
+    __slots__ = ['id', 'vehicle_type', 'status', 'location', 'medical_equipment','incident','state']
     __instances_count = 0
+    __max_id = 1
 
-    def __init__(self, id, vehicle_type, status, location, medical_equipment):
-        self.id = id
+    def __init__(self, vehicle_type, status, location, medical_equipment):
+        self.id = Ambulance.__max_id
         self.vehicle_type = vehicle_type
         self.status = status  # e.g., "available", "on_mission", "servicing"
         self.location = location # as (northing, easting)
         self.medical_equipment = medical_equipment  # List of medical equipment names
+        self.incident = []
+        self.state = 'coffee break'
         Ambulance.__instances_count += 1
+        Ambulance.__max_id += 1
 
     def update_location(self, new_location):
+        self.state = 'hitting the road'
         self.location = new_location
+    
+    def add_incident(self, incident):
+        self.incident.append(incident)
+        print(f'Added incident{self.incident[-1].id} to ambulance{self.id}')
+        self.state = 'got incident'
+        print(f'ambulance{self.id} got incident') 
+    
+    def sort_incident(self):
+        self.incident = sorted(self.incident, key=lambda x: (x.priority, x.time))  
+        self.state = u'\U0001F914'
+        print(f'Sorted incident: {self.incident}')
+
+    def time_from_incident_happend(self, incident):
+        time_now = datetime.now()
+        time_now = time_now.strftime("%H:%M")
+        time_of_incident = datetime.strptime(incident.time, '%H:%M')
+        time_of_incident = time_of_incident.strftime("%H:%M")
+
+        print(f'Time right now: {time_now}, incident time: {time_of_incident}')
+    
+    def distance_from_incident(self, incident):
+        print(f"Shortest distance from an incident: {math.sqrt((self.location[0]-incident.location[0])**2 + (self.location[1]-incident.location[1])**2)}")
+
+    def ambulance_done(self):
+        self.sort_incident()
+        assert self.state == u'\U0001F914'
+        for accident in self.incident:
+            self.time_from_incident_happend(accident)
+            self.distance_from_incident(accident)
+            self.update_location(accident.location)
+            assert self.state == 'hitting the road'
+            accident.status = 'going for coffee'
+            self.state = 'going for coffee'
+            assert self.state == 'going for coffee'
+            print("incident done, going for coffee \U0001f604")
 
     def __eq__(self, other):
         if not isinstance(other, Ambulance):
@@ -34,14 +76,14 @@ class Ambulance:
 
 if __name__ == "__main__":
     ambulance1 = Ambulance(
-        id=0,
+        #id=0,
         vehicle_type="AZ124",
         status="Available",
         location=(50.095340, 19.920282),
         medical_equipment = ["defibrillator", "stretcher"]
     )
     ambulance2 = Ambulance(
-        id=1,
+        #id=1,
         vehicle_type="AZ2000",
         status="Available",
         location=(50.095340, 19.920282),
